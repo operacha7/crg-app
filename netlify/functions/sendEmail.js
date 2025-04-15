@@ -12,7 +12,7 @@ exports.handler = async function (event) {
     const { recipient, subject, htmlBody, cc } = JSON.parse(event.body);
 
     const payload = {
-      from: "crghouston1@gmail.com", // Must be verified in Resend
+      from: "info@crghouston.org",
       to: recipient,
       subject,
       html: htmlBody,
@@ -34,10 +34,7 @@ exports.handler = async function (event) {
       console.error("Resend error:", data);
       return {
         statusCode: res.status,
-        body: JSON.stringify({
-          success: false,
-          message: data.message || "Send failed",
-        }),
+        body: JSON.stringify({ success: false, message: data.message || "Send failed" }),
       };
     }
 
