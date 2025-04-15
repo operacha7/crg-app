@@ -1,7 +1,6 @@
-// netlify/functions/sendEmail.js
-const nodemailer = require("nodemailer");
+const fetch = require("node-fetch");
 
-exports.handler = async function (event, context) {
+exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -12,30 +11,42 @@ exports.handler = async function (event, context) {
   try {
     const { recipient, subject, htmlBody, cc } = JSON.parse(event.body);
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
+    const payload = {
+      from: "crghouston1@gmail.com", // Must be verified in Resend
       to: recipient,
       subject,
       html: htmlBody,
       ...(cc && { cc }),
     };
 
-    await transporter.sendMail(mailOptions);
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Resend error:", data);
+      return {
+        statusCode: res.status,
+        body: JSON.stringify({
+          success: false,
+          message: data.message || "Send failed",
+        }),
+      };
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true }),
+      body: JSON.stringify({ success: true, id: data.id }),
     };
   } catch (error) {
-    console.error("Send email error:", error);
+    console.error("Function error:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, message: error.message }),
