@@ -1,5 +1,3 @@
-const fetch = require("node-fetch");
-
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
@@ -34,7 +32,10 @@ exports.handler = async function (event) {
       console.error("Resend error:", data);
       return {
         statusCode: res.status,
-        body: JSON.stringify({ success: false, message: data.message || "Send failed" }),
+        body: JSON.stringify({
+          success: false,
+          message: data.message || "Send failed",
+        }),
       };
     }
 
